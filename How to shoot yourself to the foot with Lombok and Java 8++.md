@@ -3,7 +3,7 @@
 
 == Strange Error
 
-We were migrating our project to Java 8. I thought we could start from the safe option. We could just compile the project with Java 8 and specify target platform to Java 7. Quick and easy step. I honestly did not expect to have any issues at this stage. So I made a new build and started executing our test suite with Java 7 runtime. 
+We were migrating our project to Java 8. I thought we could start from the safe option. We could just compile the project with Java 8 compiler and specify target platform to Java 7. Quick and easy step. I honestly did not expect to have any issues at this stage. So I made a new build and started executing our test suite with Java 7 runtime. 
 Tests were passing one by one but then…Boom! We got a crash. 
 The stack trace looked like this:
 [source]
@@ -44,13 +44,13 @@ public class Foo implements Map<String, String> {
    // other methods skipped for brevity
 }
 
-Again nothing suspicious at the first glance. And nothing should cause _NoClassDefFoundError_. However, class contained _@Delegate_ annotation from https://projectlombok.org[Lombok] library. 
+Again nothing suspicious at the first glance. And nothing should cause _NoClassDefFoundError_. However, class contained _@Delegate_ annotation from link:https://projectlombok.org[Lombok] library. 
 
 == @Delegate…What wrong can be here? 
 
 What _@Delegate_ annotation does is the following: using byte code generation it inserts into the class methods that correspond to the given interface/class and implements them by delegating to the method invocations at the annotated field…In our example (see class _Foo_ above) annotation _@Delegate_ will add all the methods of _Map<String, String>_ into _Foo_ class. Implementations of these methods will contain invocations of corresponding methods on field _params_, which is a _HashMap<String, String>_ and therefore supports _Map<String,String>_ contract. And here I recalled and realized that there is a difference between _java.util.Map_ interface in Java 7 and Java 8. See the picture below:
 
-[uml]
+[uml, file="uml-picture.png"]
 --
 interface Java7.Map<K,V> {
     int size();
